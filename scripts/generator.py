@@ -17,30 +17,31 @@ def delivery_report(err, msg):
 
 def generate_stream(csv_path):
     print(f"Reading dataset :: {csv_path}")
-    df = pd.read_csv(csv_path)   
-    df = df.drop(['isFraud', 'isFlaggedFraud'], axis=1)
     print("Pay Simulator Generator: Sending transactions to Kafka")
-    
     try:
         while True:
-            for index, row in df.iterrows():
-                transaction_data = row.to_dict()
+            for chunk in pd.read_csv(csv_path, chunksize=100000):
+                chunk = chunk.drop(['isFraud', 'isFlaggedFraud'], axis=1)
                 
-                transaction_data['timestamp'] = int(time.time())
-                transaction_data['transaction_id'] = index
+                for index, row in chunk.iterrows():
+                    transaction_data = row.to_dict()
+                    
+                    transaction_data['timestamp'] = int(time.time())
+                    transaction_data['transaction_id'] = index
 
-                payload = json.dumps(transaction_data).encode('utf-8')
+                    payload = json.dumps(transaction_data).encode('utf-8')
 
-                producer.produce(topic=TOPIC_NAME, value=payload, callback=delivery_report)
-                producer.poll(0)
-                print(f"[{transaction_data['type']}] ID #{index}: {transaction_data['amount']} USD")
-                time.sleep(0.3)
-                
+                    producer.produce(topic=TOPIC_NAME, value=payload, callback=delivery_report)
+                    producer.poll(0)
+                    
+                    print(f"[{transaction_data['type']}] ID #{index}: {transaction_data['amount']} USD")
+                    time.sleep(0.3)
+                    
     except KeyboardInterrupt:
-        print("Generator Stopped")
+        print("\nGenerator Stopped")
     finally:
         producer.flush()
 
 if __name__ == "__main__":
-    CSV_FILE_PATH = "data/card_transdata.csv"
+    CSV_FILE_PATH = "data/data.csv"
     generate_stream(CSV_FILE_PATH)
