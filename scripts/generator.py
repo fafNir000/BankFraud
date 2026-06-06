@@ -4,7 +4,7 @@ import pandas as pd
 from confluent_kafka import Producer
 
 kafka_config = {
-    'bootstrap.servers': 'localhost:9092',
+    'bootstrap.servers': 'kafka:29092',
     'client.id': 'paysim_transaction_generator'
 }
 

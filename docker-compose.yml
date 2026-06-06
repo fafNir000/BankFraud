@@ -9,7 +9,7 @@ services:
     ports:
       - "2181:2181"
 
-  # 2. Брокер сообщений Kafka
+  # 2. Брокер Apache Kafka
   kafka:
     image: confluentinc/cp-kafka:7.3.0
     container_name: fraud_kafka
@@ -20,6 +20,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Настройка портов: 29092 для внутренней сети Докера, 9092 для внешнего мира (твоего ПК)
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -31,7 +33,7 @@ services:
     container_name: fraud_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret_password
+      POSTGRES_PASSWORD: secret_password   # Убедись, что этот же пароль указан в скриптах!
       POSTGRES_DB: fraud_db
     ports:
       - "5432:5432"
@@ -47,25 +49,10 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-    command: sh -c "pip install confluent-kafka pandas && python scripts/1_generator.py"
+    # Так как генератор внутри Докера, он отправляет данные на kafka:29092 (проверь это в scripts/generator.py!)
+    command: sh -c "pip install confluent-kafka pandas && python scripts/generator.py"
 
-  # 5. Обработчик потока на PySpark (ПЕРЕШЛИ НА ОФИЦИАЛЬНЫЙ ОБРАЗ APACHE)
-  spark-processor:
-    image: apache/spark:3.5.0-python3
-    container_name: fraud_spark_processor
-    depends_on:
-      - kafka
-      - postgres
-    volumes:
-      - .:/app
-    working_dir: /app
-    # Запускаем скрипт сразу через spark-submit. Зависимости (joblib, sklearn) мы подтянем динамически!
-    command: >
-      spark-submit 
-      --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.6.0
-      scripts/3_spark_processor.py
-
-  # 6. Сайт-Дашборд на Streamlit
+  # 5. Сайт-Дашборд на Streamlit
   dashboard:
     build:
       context: .
