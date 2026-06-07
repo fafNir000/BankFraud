@@ -1,5 +1,7 @@
 # 🛡️ Real-Time Banking Fraud Detection System
-Contributors:  
+**Contributors:**  
+- Arpine Grigoryan https://github.com/arpigrigoryan0527-dotcom
+- Christian Alexanyan https://github.com/fafNir000
 
 This project demonstrates a full real-time fraud detection pipeline:
 
@@ -21,19 +23,19 @@ End-to-end **real-time streaming system** for detecting fraudulent banking trans
 # ⚙️ Architecture
 
 
-CSV Dataset
-↓
-Kafka Producer (generator.py)
-↓
-Kafka Topic: transactions
-↓
-Spark Streaming Processor (spark_processor.py)
-↓
-ML Model (Logistic Regression)
-↓
-PostgreSQL Database
-↓
-Streamlit Dashboard
+CSV Dataset  
+↓  
+Kafka Producer (generator.py)  
+↓  
+Kafka Topic: transactions  
+↓  
+Spark Streaming Processor (spark_processor.py)  
+↓  
+ML Model (Logistic Regression)  
+↓  
+PostgreSQL Database  
+↓  
+Streamlit Dashboard  
 
 
 ---
@@ -64,27 +66,39 @@ Streamlit Dashboard
 
 # 📁 Project Structure
 
-.
-├── data/
-│ ├── data.csv
-│ └── modeldata.csv
-│
-├── models/
-│ └── paysim_logreg_model/
-│
-├── scripts/
-│ ├── generator.py
-│ ├── train_model.py
-│ └── spark_processor.py
-│
-├── dashboard/
-│ ├── dashboard.py
-│ └── requirements_dash.txt
-│
-├── cleaning.ipynb
-├── docker-compose.yml
-├── Dockerfile.dashboard
-└── README.md
+```text
+.  
+├── data/  
+│ ├── data.csv  
+│ └── modeldata.csv  
+│  
+├── models/  
+│ └── paysim_logreg_model/  
+│  
+├── scripts/  
+│ ├── generator.py  
+│ ├── train_model.py  
+│ └── spark_processor.py  
+│  
+├── dashboard/  
+│ ├── dashboard.py  
+│ └── requirements_dash.txt  
+│  
+├── cleaning.ipynb  
+├── docker-compose.yml  
+├── Dockerfile.dashboard  
+└── README.md  
+```
+
+---
+# Requirements for running
+
+python 3.10  
+python packages (pythonrequirements.txt)  
+JDK 17  
+winutils.exe , hadoop.dll 3.3.0  
+DBeaver for watching SQL table  
+Docker Desktop (WSL)  
 
 ---
 
@@ -92,126 +106,161 @@ Streamlit Dashboard
 
 ## 1. Start all services
 
-bash
+```bash
 docker-compose up --build
+```
 
 This will start:
 
-Zookeeper
-Kafka
-PostgreSQL
-Data Generator
-Streamlit Dashboard
+Zookeeper, Kafka, PostgreSQL, Data Generator, Streamlit Dashboard
 
----
-
-
-##2. Train ML Model
+## 2. Train ML Model
 
 Before starting Spark streaming:
 
+```bash
 python scripts/train_model.py
+```
 
 Model will be saved to:
 
+```text
 models/paysim_logreg_model
+```
 
-##3. Start Spark Streaming Processor
+## 3. Start Spark Streaming Processor
 
+```bash
 python scripts/spark_processor.py
+```
 
-
----
-
-##4. Open Dashboard
+## 4. Open Dashboard
 
 http://localhost:8501
 
-##Dataset
-Input dataset:
-data/data.csv
-After preprocessing:
-data/modeldata.csv
+---
 
+# Dataset
+
+**Input dataset:**
+
+```text
+data/data.csv
+```
+
+**After preprocessing:**
+
+```text
+data/modeldata.csv
+```
 Columns include:
 
-step
-type
-amount
-oldbalanceOrg
-newbalanceOrig
-oldbalanceDest
-newbalanceDest
-isFraud (label)
+- step
+- type
+- amount
+- oldbalanceOrg
+- newbalanceOrig
+- oldbalanceDest
+- newbalanceDest
+- isFraud
 
 ---
 
-##Generator (Kafka Producer)
-scripts/generator.py
+# Generator (Kafka Producer)
 
-Reads CSV data
+```text
+scripts/generator.py
+```
+
+Reads CSV data  
 Removes label columns
 Adds:
-transaction_id
-timestamp
-Sends data to Kafka topic transactions
+- transaction_id
+- timestamp
+- Sends data to Kafka topic transactions
 
-##Spark Streaming Pipeline
+---
 
+# Spark Streaming Pipeline
+
+```text
 scripts/spark_processor.py
-Steps:
-Read data from Kafka
+```
+Steps:  
+Read data from Kafka  
 Parse JSON into DataFrame
+
 Feature engineering:
-errorBalanceOrig
-errorBalanceDest
-Load trained ML model
-Predict fraud probability
-Write results into PostgreSQL
+- errorBalanceOrig
+- errorBalanceDest
 
-##Machine Learning Model
+Load trained ML model  
+Predict fraud probability  
+Write results into PostgreSQL  
 
+---
+
+# Machine Learning Model
+
+```text
 scripts/train_model.py
-Algorithm:
-Logistic Regression
-Pipeline:
-StringIndexer (type)
-OneHotEncoder
-VectorAssembler
-Output:
-models/paysim_logreg_model
+```
 
-PostgreSQL Schema
-Table:
-transactions
+Algorithm:  
+Logistic Regression  
+Pipeline:  
+- StringIndexer (type)
+- OneHotEncoder
+- VectorAssembler
+
+Output:
+```text
+models/paysim_logreg_model
+```
+
+---
+
+# PostgreSQL Schema
+
+Table: transactions
 
 Columns:
 
-transaction_id
-timestamp
-step
-type
-amount
-prediction
-fraud_probability
+- transaction_id
+- timestamp
+- step
+- type
+- amount
+- prediction
+- fraud_probability
 
-Streamlit Dashboard
+---
 
+# Streamlit Dashboard
+
+```text
 dashboard/dashboard.py
-
+```
 Features:
-Real-time KPIs
-Fraud detection metrics
-Transaction type distribution
-Fraud probability visualization
-Top fraud alerts
-Raw transaction view
+- Real-time KPIs
+- Fraud detection metrics
+- Transaction type distribution
+- Fraud probability visualization
+- Top fraud alerts
+- Raw transaction view
 
-Docker Services
-Defined in docker-compose.yml:
+---
 
-kafka
-zookeeper
-postgres
-generator
+# Docker Services
+
+Defined in 
+```text
+docker-compose.yml:
+```
+- kafka
+- zookeeper
+- postgres
+- generator
 dashboard
+
+---
