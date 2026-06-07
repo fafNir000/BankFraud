@@ -50,7 +50,7 @@ refresh = st.button("🔄 Refresh Data")
 df = load_data()
 
 if df.empty:
-    st.warning("База данных пока пуста.")
+    st.warning("Database is empty")
     st.stop()
 
 fraud_df = df[df["prediction"] == 1]
