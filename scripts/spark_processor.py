@@ -18,17 +18,9 @@ from pyspark.sql.types import (
 
 from pyspark.ml import PipelineModel
 
-# ==================================================
-# ENV
-# ==================================================
-
 os.environ["HADOOP_HOME"] = "C:\\hadoop"
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-
-# ==================================================
-# SPARK SESSION
-# ==================================================
 
 spark = SparkSession.builder \
     .appName("FraudDetectionStreaming") \
@@ -46,21 +38,13 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("WARN")
 
-print("✅ Spark Started")
-
-# ==================================================
-# LOAD TRAINED MODEL
-# ==================================================
+print("Spark Started")
 
 MODEL_PATH = "models/paysim_logreg_model"
 
 model = PipelineModel.load(MODEL_PATH)
 
-print("✅ Model Loaded")
-
-# ==================================================
-# KAFKA SCHEMA
-# ==================================================
+print("Model Loaded")
 
 schema = StructType([
     StructField("step", IntegerType(), True),
@@ -74,20 +58,12 @@ schema = StructType([
     StructField("transaction_id", StringType(), True)
 ])
 
-# ==================================================
-# READ STREAM FROM KAFKA
-# ==================================================
-
 kafka_df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "localhost:9092") \
     .option("subscribe", "transactions") \
     .option("startingOffsets", "latest") \
     .load()
-
-# ==================================================
-# JSON -> DATAFRAME
-# ==================================================
 
 transactions_df = kafka_df \
     .selectExpr("CAST(value AS STRING) as json_str") \
@@ -98,10 +74,6 @@ transactions_df = kafka_df \
         ).alias("data")
     ) \
     .select("data.*")
-
-# ==================================================
-# FEATURE ENGINEERING
-# ==================================================
 
 features_df = transactions_df \
     .withColumn(
@@ -117,15 +89,7 @@ features_df = transactions_df \
         - col("newbalanceDest")
     )
 
-# ==================================================
-# PREDICTION
-# ==================================================
-
 predictions_df = model.transform(features_df)
-
-# ==================================================
-# PROBABILITY
-# ==================================================
 
 probability_udf = udf(
     lambda v: float(v[1]),
@@ -137,10 +101,6 @@ predictions_df = predictions_df.withColumn(
     probability_udf(col("probability"))
 )
 
-# ==================================================
-# FINAL DATAFRAME
-# ==================================================
-
 final_df = predictions_df.select(
     col("transaction_id"),
     col("timestamp"),
@@ -151,25 +111,17 @@ final_df = predictions_df.select(
     col("fraud_probability")
 )
 
-# ==================================================
-# POSTGRES WRITER
-# ==================================================
-
 POSTGRES_URL = "jdbc:postgresql://localhost:5432/fraud_db"
 POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "secret_password"
 
 def write_to_postgres(batch_df, batch_id):
-
     count = batch_df.count()
-
     print(
         f"📦 Batch {batch_id} | Records = {count}"
     )
-
     if count == 0:
         return
-
     batch_df.write \
         .format("jdbc") \
         .option("url", POSTGRES_URL) \
@@ -180,15 +132,11 @@ def write_to_postgres(batch_df, batch_id):
         .mode("append") \
         .save()
 
-# ==================================================
-# START STREAM
-# ==================================================
-
 query = final_df.writeStream \
     .foreachBatch(write_to_postgres) \
     .outputMode("append") \
     .start()
 
-print("🚀 Streaming Started")
+print("Streaming Started")
 
 query.awaitTermination()
