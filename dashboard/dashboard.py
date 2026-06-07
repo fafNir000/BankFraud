@@ -174,7 +174,7 @@ if not fraud_by_type.empty:
 else:
 
     st.success(
-        "Мошеннические транзакции пока не обнаружены."
+        "Fraud transactions are not detected."
     )
 
 st.subheader("🚨 Latest Fraud Alerts")
@@ -201,7 +201,7 @@ if not fraud_df.empty:
 else:
 
     st.success(
-        "Нет подозрительных операций."
+        "No suspicius transactions."
     )
 
 with st.expander("📋 Show Raw Transactions"):
