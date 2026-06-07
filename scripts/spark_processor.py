@@ -118,7 +118,7 @@ POSTGRES_PASSWORD = "secret_password"
 def write_to_postgres(batch_df, batch_id):
     count = batch_df.count()
     print(
-        f"📦 Batch {batch_id} | Records = {count}"
+        f"Batch {batch_id} | Records = {count}"
     )
     if count == 0:
         return
