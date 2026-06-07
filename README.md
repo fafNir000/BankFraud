@@ -138,6 +138,9 @@ python scripts/spark_processor.py
 
 http://localhost:8501
 
+<img width="1494" height="693" alt="image" src="https://github.com/user-attachments/assets/314a364c-42be-4961-bf3d-dd63bf30c45a" />
+<img width="1499" height="675" alt="image" src="https://github.com/user-attachments/assets/ba2c5a93-6215-43b5-8b60-df6444102e7f" />
+
 ---
 
 # Dataset
