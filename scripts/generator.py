@@ -1,6 +1,7 @@
 import time
 import json
 import pandas as pd
+import uuid
 from confluent_kafka import Producer
 
 kafka_config = {
@@ -20,14 +21,14 @@ def generate_stream(csv_path):
     print("Pay Simulator Generator: Sending transactions to Kafka")
     try:
         while True:
-            for chunk in pd.read_csv(csv_path, chunksize=100000):
+            for chunk in pd.read_csv(csv_path, chunksize=500):
                 chunk = chunk.drop(['isFraud', 'isFlaggedFraud'], axis=1)
                 
                 for index, row in chunk.iterrows():
                     transaction_data = row.to_dict()
                     
                     transaction_data['timestamp'] = int(time.time())
-                    transaction_data['transaction_id'] = index
+                    transaction_data['transaction_id'] = str(uuid.uuid4())
 
                     payload = json.dumps(transaction_data).encode('utf-8')
 
