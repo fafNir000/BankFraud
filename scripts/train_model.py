@@ -21,7 +21,7 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("WARN")
 
-df = spark.read.csv("data/data.csv", header=True, inferSchema=True)
+df = spark.read.csv("data/modeldata.csv", header=True, inferSchema=True)
 
 df = df.withColumn(
     "errorBalanceOrig",
@@ -62,7 +62,7 @@ assembler = VectorAssembler(
 lr = LogisticRegression(
     featuresCol="features",
     labelCol="label",
-    maxIter=10,
+    maxIter=20,
     regParam=0.1,
     elasticNetParam=0.8
 )
